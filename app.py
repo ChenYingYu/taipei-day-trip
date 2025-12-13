@@ -166,6 +166,76 @@ async def get_attractions(
             connection.close()
 
 
+@app.get("/api/attraction/{id}")
+async def get_attraction_by_id(id: int):
+    connection = None
+    cursor = None
+
+    query = """
+		SELECT
+			A.id, A.name, C.name AS category, A.description, A.address, A.transport, A.lat, A.lng,
+			GROUP_CONCAT(I.url) AS images,
+			GROUP_CONCAT(DISTINCT M.name) AS mrts
+		FROM attraction AS A
+		LEFT JOIN category AS C ON A.category_id = C.id
+		LEFT JOIN image AS I ON A.id = I.attraction_id
+		LEFT JOIN attraction_mrt AS AM ON A.id = AM.attraction_id
+		LEFT JOIN mrt_station AS M ON AM.mrt_id = M.id
+		WHERE A.id = %s
+		GROUP BY A.id
+	"""
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute(query, (id,))
+        result = cursor.fetchone()
+
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": True, "message": "景點不存在。"},
+            )
+
+        image_urls = result.pop("images").split(",") if result.get("images") else []
+
+        formatted_data = {
+            "id": result["id"],
+            "name": result["name"],
+            "category": result["category"],
+            "description": result["description"],
+            "address": result["address"],
+            "transport": result["transport"],
+            "mrt": result.get("mrts").split(",")[0] if result.get("mrts") else None,
+            "lat": float(result["lat"]),
+            "lng": float(result["lng"]),
+            "images": image_urls,
+        }
+
+        return {"data": formatted_data}
+
+    except mysql.connector.Error as e:
+        print(f"Database Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "資料庫查詢錯誤，請稍後再試。"},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "伺服器發生意外錯誤。"},
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
 @app.get("/", include_in_schema=False)
 async def index(request: Request):
     return FileResponse("./static/index.html", media_type="text/html")
