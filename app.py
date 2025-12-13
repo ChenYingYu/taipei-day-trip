@@ -236,6 +236,43 @@ async def get_attraction_by_id(id: int):
             connection.close()
 
 
+@app.get("/api/categories")
+async def get_categories():
+    connection = None
+    cursor = None
+
+    query = "SELECT name FROM category"
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        categories = [row[0] for row in results]
+
+        return {"data": categories}
+
+    except mysql.connector.Error as e:
+        print(f"Database Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "資料庫查詢錯誤，請稍後再試。"},
+        )
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "伺服器發生意外錯誤。"},
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
 @app.get("/", include_in_schema=False)
 async def index(request: Request):
     return FileResponse("./static/index.html", media_type="text/html")
