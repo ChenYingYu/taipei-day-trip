@@ -67,3 +67,49 @@ const observer = new IntersectionObserver((entries) => {
 
 const sentinel = document.getElementById("infinite-scroll-sentinel");
 observer.observe(sentinel);
+
+// Category Dropdown Logic
+const categoryBtn = document.getElementById("category-btn");
+const categoryMenu = document.getElementById("category-menu");
+
+async function initCategories() {
+  try {
+    const response = await fetch("/api/categories");
+    const result = await response.json();
+    const categories = result.data;
+
+    categories.unshift("全部分類");
+
+    categoryMenu.innerHTML = ""; 
+    categories.forEach((category) => {
+      const item = document.createElement("div");
+      item.className = "category-item";
+      item.textContent = category;
+
+      item.addEventListener("click", () => {
+        categoryBtn.textContent = category + " ▼";
+        categoryMenu.classList.remove("active");
+      });
+
+      categoryMenu.appendChild(item);
+    });
+    console.log;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+  }
+}
+
+categoryBtn.addEventListener("click", (e) => {
+  categoryMenu.classList.toggle("active");
+  e.stopPropagation();
+});
+
+document.addEventListener("click", () => {
+  categoryMenu.classList.remove("active");
+});
+
+categoryMenu.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+initCategories();
