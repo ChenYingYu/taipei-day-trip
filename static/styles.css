@@ -241,11 +241,9 @@ body {
 }
 
 .attractions-grid {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 30px;
 }
 
 .attraction-card {
@@ -317,7 +315,32 @@ footer {
   padding: 5px 0;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+@media (min-width: 600px) and (max-width: 1200px) {
+  .attractions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 30px;
+  }
+
+  .attraction-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .attractions-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 30px;
+  }
+
+  .attraction-card {
+    width: 100%;
+  }
+}
