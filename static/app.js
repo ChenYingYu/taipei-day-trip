@@ -1,11 +1,17 @@
 let nextPage = 0;
 let isLoading = false;
+let currentKeyword = "";
+let currentCategory = "";
 
 async function getAttractions() {
   if (nextPage === null || isLoading) return;
   isLoading = true;
   try {
-    const response = await fetch(`/api/attractions?page=${nextPage}`);
+    let url = `/api/attractions?page=${nextPage}`;
+    if (currentCategory)
+      url += `&category=${encodeURIComponent(currentCategory)}`;
+    if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+    const response = await fetch(url);
     const data = await response.json();
     renderAttractions(data.data);
     nextPage = data.nextPage;
@@ -24,6 +30,12 @@ async function getAttractions() {
 
 function renderAttractions(attractions) {
   const grid = document.getElementById("attractions-grid");
+
+  if (nextPage === 0 && attractions.length === 0) {
+    grid.innerHTML = '<div class="no-results">沒有找到相關景點</div>';
+    nextPage = null;
+    return;
+  }
 
   attractions.forEach((attraction) => {
     const card = document.createElement("div");
@@ -50,6 +62,18 @@ function renderAttractions(attractions) {
     grid.appendChild(card);
   });
 }
+
+const searchBtn = document.getElementById("search-btn");
+const searchInput = document.getElementById("search_input");
+
+searchBtn.addEventListener("click", () => {
+  currentKeyword = searchInput.value.trim();
+
+  nextPage = 0;
+  document.getElementById("attractions-grid").innerHTML = "";
+
+  getAttractions();
+});
 
 const observerOptions = {
   root: null,
@@ -80,13 +104,14 @@ async function initCategories() {
 
     categories.unshift("全部分類");
 
-    categoryMenu.innerHTML = ""; 
+    categoryMenu.innerHTML = "";
     categories.forEach((category) => {
       const item = document.createElement("div");
       item.className = "category-item";
       item.textContent = category;
 
       item.addEventListener("click", () => {
+        currentCategory = category === "全部分類" ? "" : category;
         categoryBtn.textContent = category + " ▼";
         categoryMenu.classList.remove("active");
       });
