@@ -126,7 +126,7 @@ body {
 
 .hero-section {
   height: 320px;
-  background-image: url("/images/hero_background.png");
+  background-image: url("/static/images/hero_background.png");
   background-size: cover;
   background-position: top;
   color: var(--gradient-light);
@@ -255,7 +255,7 @@ body {
 }
 
 .attraction-card__thumbnail {
-  background-image: url("/images/attraction.png");
+  background-image: url("/static/images/attraction.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
   </head>
   <body>
     <header>
@@ -44,7 +45,7 @@
             placeholder="輸入景點名稱查詢"
           />
           <button class="search-bar__button" id="search-btn">
-            <img src="/images/search_icon.png" alt="Search" />
+            <img src="/static/images/search_icon.png" alt="Search" />
           </button>
         </div>
       </div>
@@ -56,7 +57,7 @@
           class="mrt-scroll__arrow mrt-scroll__arrow--left"
           id="mrt-scroll-left"
         >
-          <img src="/images/left_arrow.png" alt="Left Arrow" />
+          <img src="/static/images/left_arrow.png" alt="Left Arrow" />
         </button>
 
         <ol class="mrt-scroll-section__container" id="mrt-container">
@@ -72,47 +73,12 @@
           class="mrt-scroll__arrow mrt-scroll__arrow--right"
           id="mrt-scroll-right"
         >
-          <img src="/images/right_arrow.png" alt="Right Arrow" />
+          <img src="/static/images/right_arrow.png" alt="Right Arrow" />
         </button>
       </section>
       <section class="attractions-container" id="attractions-container">
         <div class="attractions-grid" id="attractions-grid">
-          <div class="attraction-card">
-            <div class="attraction-card__thumbnail">
-              <div class="attraction-card__name">平安鐘</div>
-            </div>
-            <div class="attraction-card__info">
-              <div class="attraction-card__mrt">忠孝復興</div>
-              <div class="attraction-card__category">公共藝術</div>
-            </div>
-          </div>
-          <div class="attraction-card">
-            <div class="attraction-card__thumbnail">
-              <div class="attraction-card__name">平安鐘</div>
-            </div>
-            <div class="attraction-card__info">
-              <div class="attraction-card__mrt">忠孝復興</div>
-              <div class="attraction-card__category">公共藝術</div>
-            </div>
-          </div>
-          <div class="attraction-card">
-            <div class="attraction-card__thumbnail">
-              <div class="attraction-card__name">平安鐘</div>
-            </div>
-            <div class="attraction-card__info">
-              <div class="attraction-card__mrt">忠孝復興</div>
-              <div class="attraction-card__category">公共藝術</div>
-            </div>
-          </div>
-          <div class="attraction-card">
-            <div class="attraction-card__thumbnail">
-              <div class="attraction-card__name">平安鐘</div>
-            </div>
-            <div class="attraction-card__info">
-              <div class="attraction-card__mrt">忠孝復興</div>
-              <div class="attraction-card__category">公共藝術</div>
-            </div>
-          </div>
+          <!-- Attraction cards will be dynamically inserted here -->
         </div>
       </section>
     </main>
