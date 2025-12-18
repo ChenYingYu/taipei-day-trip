@@ -1,17 +1,330 @@
 from fastapi import *
 from fastapi.responses import FileResponse
-app=FastAPI()
 
-# Static Pages (Never Modify Code in this Block)
+import mysql.connector
+from contextlib import asynccontextmanager
+from mysql.connector import pooling  # For database connection pooling
+
+from dotenv import load_dotenv
+import os
+
+from typing import Annotated, Any
+
+db_pool = None
+
+
+def create_db_pool():
+    """Creates a connection pool to the MySQL database."""
+    load_dotenv()
+    config = {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
+        "database": "taipei_day_trip",
+        "pool_name": "taipei_pool",
+        "pool_size": 5,
+    }
+
+    try:
+        global db_pool
+        db_pool = pooling.MySQLConnectionPool(**config)
+        print("Database connection pool created successfully.")
+    except mysql.connector.Error as err:
+        print(f"Error creating connection pool: {err}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up... Creating database connection pool.")
+    create_db_pool()
+    yield
+    print("Shutting down... Closing database connection pool.")
+    global db_pool
+    if db_pool is not None:
+        db_pool = None
+        print("Database connection pool reference cleared.")
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+def get_connection():
+    if db_pool is None:
+        raise Exception("Database connection pool is not initialized.")
+    return db_pool.get_connection()
+
+
+@app.get("/api/attractions")
+async def get_attractions(
+    page: Annotated[int, Query(ge=0, description="頁碼，從 0 開始，每頁 8 筆資料")] = 0,
+    category: Annotated[
+        str | None, Query(description="按類別名稱篩選，精確匹配")
+    ] = None,
+    keyword: Annotated[
+        str | None, Query(description="景點名稱包含關鍵字或捷運站名稱完全匹配")
+    ] = None,
+):
+    connection = None
+    cursor = None
+    LIMIT = 8
+
+    base_query = """
+        SELECT
+            A.id, A.name, C.name AS category, A.description, A.address, A.transport, A.lat, A.lng,
+            GROUP_CONCAT(I.url) AS images,
+            GROUP_CONCAT(DISTINCT M.name) AS mrts
+        FROM attraction AS A
+        LEFT JOIN category AS C ON A.category_id = C.id
+        LEFT JOIN image AS I ON A.id = I.attraction_id
+        LEFT JOIN attraction_mrt AS AM ON A.id = AM.attraction_id
+        LEFT JOIN mrt_station AS M ON AM.mrt_id = M.id
+        WHERE 1=1
+    """
+
+    where_params: list[Any] = []
+
+    # 1. 類別篩選
+    if category:
+        base_query += " AND C.name = %s"
+        where_params.append(category)
+
+    # 2. 關鍵字篩選 (名稱 LIKE 或 MRT = )
+    if keyword:
+        base_query += " AND (A.name LIKE %s OR M.name = %s)"
+        where_params.extend([f"%{keyword}%", keyword])
+
+    # 3. 結束 GROUP BY, 排序, 和 LIMIT/OFFSET
+    final_query = (
+        base_query
+        + """
+        GROUP BY A.id
+        ORDER BY A.id
+        LIMIT %s OFFSET %s
+    """
+    )
+
+    query_limit = LIMIT + 1
+    query_offset = page * LIMIT
+
+    # 最終參數列表 (WHERE 參數 + LIMIT/OFFSET 參數)
+    params = where_params + [query_limit, query_offset]
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute(final_query, params)
+        results = cursor.fetchall()
+
+        # 檢查是否有下一頁
+        if len(results) == query_limit:
+            next_page = page + 1
+            data = results[:LIMIT]  # 返回前 8 筆
+        else:
+            next_page = None
+            data = results  # 返回所有結果 (<= 8 筆)
+
+        formatted_data = []
+        for item in data:
+            image_urls = item.pop("images").split(",") if item.get("images") else []
+
+            formatted_data.append(
+                {
+                    "id": item["id"],
+                    "name": item["name"],
+                    "category": item["category"],
+                    "description": item["description"],
+                    "address": item["address"],
+                    "transport": item["transport"],
+                    "mrt": item.get("mrts").split(",")[0] if item.get("mrts") else None,
+                    "lat": float(item["lat"]),
+                    "lng": float(item["lng"]),
+                    "images": image_urls,
+                }
+            )
+
+        return {"nextPage": next_page, "data": formatted_data}
+
+    except mysql.connector.Error as e:
+        # 處理資料庫錯誤，返回 500
+        print(f"Database Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "資料庫查詢錯誤，請稍後再試。"},
+        )
+    except Exception as e:
+        # 處理其他所有錯誤，返回 500
+        print(f"Unexpected Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "伺服器發生意外錯誤。"},
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+@app.get("/api/attraction/{id}")
+async def get_attraction_by_id(id: int):
+    connection = None
+    cursor = None
+
+    query = """
+		SELECT
+			A.id, A.name, C.name AS category, A.description, A.address, A.transport, A.lat, A.lng,
+			GROUP_CONCAT(I.url) AS images,
+			GROUP_CONCAT(DISTINCT M.name) AS mrts
+		FROM attraction AS A
+		LEFT JOIN category AS C ON A.category_id = C.id
+		LEFT JOIN image AS I ON A.id = I.attraction_id
+		LEFT JOIN attraction_mrt AS AM ON A.id = AM.attraction_id
+		LEFT JOIN mrt_station AS M ON AM.mrt_id = M.id
+		WHERE A.id = %s
+		GROUP BY A.id
+	"""
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute(query, (id,))
+        result = cursor.fetchone()
+
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": True, "message": "景點不存在。"},
+            )
+
+        image_urls = result.pop("images").split(",") if result.get("images") else []
+
+        formatted_data = {
+            "id": result["id"],
+            "name": result["name"],
+            "category": result["category"],
+            "description": result["description"],
+            "address": result["address"],
+            "transport": result["transport"],
+            "mrt": result.get("mrts").split(",")[0] if result.get("mrts") else None,
+            "lat": float(result["lat"]),
+            "lng": float(result["lng"]),
+            "images": image_urls,
+        }
+
+        return {"data": formatted_data}
+
+    except mysql.connector.Error as e:
+        print(f"Database Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "資料庫查詢錯誤，請稍後再試。"},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "伺服器發生意外錯誤。"},
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+@app.get("/api/categories")
+async def get_categories():
+    connection = None
+    cursor = None
+
+    query = "SELECT name FROM category"
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        categories = [row[0] for row in results]
+
+        return {"data": categories}
+
+    except mysql.connector.Error as e:
+        print(f"Database Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "資料庫查詢錯誤，請稍後再試。"},
+        )
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "伺服器發生意外錯誤。"},
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+@app.get("/api/mrts")
+async def get_mrts():
+    connection = None
+    cursor = None
+
+    query = "SELECT name FROM mrt_station"
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        mrts = [row[0] for row in results]
+
+        return {"data": mrts}
+
+    except mysql.connector.Error as e:
+        print(f"Database Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "資料庫查詢錯誤，請稍後再試。"},
+        )
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": True, "message": "伺服器發生意外錯誤。"},
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
 @app.get("/", include_in_schema=False)
 async def index(request: Request):
-	return FileResponse("./static/index.html", media_type="text/html")
+    return FileResponse("./static/index.html", media_type="text/html")
+
+
 @app.get("/attraction/{id}", include_in_schema=False)
 async def attraction(request: Request, id: int):
-	return FileResponse("./static/attraction.html", media_type="text/html")
+    return FileResponse("./static/attraction.html", media_type="text/html")
+
+
 @app.get("/booking", include_in_schema=False)
 async def booking(request: Request):
-	return FileResponse("./static/booking.html", media_type="text/html")
+    return FileResponse("./static/booking.html", media_type="text/html")
+
+
 @app.get("/thankyou", include_in_schema=False)
 async def thankyou(request: Request):
-	return FileResponse("./static/thankyou.html", media_type="text/html")
+    return FileResponse("./static/thankyou.html", media_type="text/html")
