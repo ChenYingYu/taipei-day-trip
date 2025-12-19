@@ -167,9 +167,14 @@ body {
 
 .category-dropdown__button {
   width: 100px;
+  flex-shrink: 0;
   border: none;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
+  font-size: 1rem;
+  color: var(--color-black);
+  background-color: var(--color-secondary-10);
+  appearance: none;
 }
 
 .category-dropdown__menu {
@@ -205,20 +210,30 @@ body {
 }
 
 .search-bar__input {
-  flex: 1;
+  flex-grow: 1;
+  min-width: 0;
   border: none;
   padding: 0 16px;
+  border-radius: 0;
+  font-size: 1rem;
 }
 
 .search-bar__button {
   width: 60px;
   padding: 8px 15px;
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   border: none;
   background: var(--color-primary-70);
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
+}
+
+.search-bar__button img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
 }
 
 .main-content {
