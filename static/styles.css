@@ -241,8 +241,8 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 13px 10px 13px 10px;
-  margin: 0;
+  padding: 13px 0px 13px 0px;
+  margin: 0 10px;
 }
 
 .mrt_button {
@@ -251,6 +251,13 @@ body {
   margin: 0;
   color: var(--color-secondary-70);
   font-size: 1rem;
+  height: 24px;
+  padding: 0 15px;
+}
+
+.mrt_button:hover {
+  cursor: pointer;
+  color: var(--color-black);
 }
 
 .mrt-scroll-section__container > li {
@@ -261,6 +268,15 @@ body {
 .mrt-scroll__arrow {
   background: none;
   border: none;
+}
+
+.mrt-scroll__arrow img {
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.mrt-scroll__arrow:hover img {
+  opacity: 1;
 }
 
 .mrt-scroll__arrow--left {

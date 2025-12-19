@@ -137,4 +137,54 @@ categoryMenu.addEventListener("click", (e) => {
   e.stopPropagation();
 });
 
+const mrtContainer = document.getElementById("mrt-container");
+const leftBtn = document.getElementById("mrt-scroll-left");
+const rightBtn = document.getElementById("mrt-scroll-right");
+
+leftBtn.addEventListener("click", () => {
+  mrtContainer.scrollBy({
+    left: -mrtContainer.offsetWidth + 50,
+    behavior: "smooth",
+  });
+});
+
+rightBtn.addEventListener("click", () => {
+  mrtContainer.scrollBy({
+    left: mrtContainer.offsetWidth - 50,
+    behavior: "smooth",
+  });
+});
+
+async function initMrtList() {
+  try {
+    const response = await fetch("/api/mrts");
+    const result = await response.json();
+    const mrts = result.data;
+
+    const container = document.getElementById("mrt-container");
+    container.innerHTML = "";
+    mrts.forEach((mrt) => {
+      const li = document.createElement("li");
+      const button = document.createElement("button");
+      button.className = "mrt_button";
+      button.textContent = mrt;
+
+      button.addEventListener("click", () => {
+        searchInput.value = mrt;
+        currentKeyword = mrt;
+
+        nextPage = 0;
+        document.getElementById("attractions-grid").innerHTML = "";
+        getAttractions();
+      });
+
+      li.appendChild(button);
+      container.appendChild(li);
+    });
+  } catch (error) {
+    console.error("Error fetching MRTs:", error);
+  }
+}
+
 initCategories();
+initMrtList();
