@@ -1,11 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Index</title>
-</head>
-<body>
-  
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <nav class="container">
+        <h1>台北一日遊</h1>
+        <div class="nav--links">
+          <button class="nav--booking font-medium" id="booking-btn">
+            預定行程
+          </button>
+          <button class="nav--auth font-medium" id="auth-btn">登入/註冊</button>
+        </div>
+      </nav>
+    </header>
+
+    <section class="hero-section">
+      <div class="hero-content container">
+        <h1 class="hero-section__title">輕鬆享受台北一日悠閒</h1>
+        <p class="hero-section__subtitle">
+          探索每個角落，體驗城市的深度旅遊行程
+        </p>
+
+        <div class="search-bar">
+          <button
+            class="category-dropdown__button category-font"
+            id="category-btn"
+          >
+            全部分類 ▼
+          </button>
+          <div class="category-dropdown__menu category-font" id="category-menu">
+            <!-- Category items will be dynamically inserted here -->
+          </div>
+
+          <input
+            type="text"
+            class="search-bar__input"
+            id="search_input"
+            placeholder="輸入景點名稱查詢"
+          />
+          <button class="search-bar__button" id="search-btn">
+            <img src="/static/images/search_icon.png" alt="Search" />
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <main class="main-content" id="main-content">
+      <section class="mrt-scroll-section" id="mrt-scroll-section">
+        <button
+          class="mrt-scroll__arrow mrt-scroll__arrow--left"
+          id="mrt-scroll-left"
+        >
+          <img src="/static/images/left_arrow.png" alt="Left Arrow" />
+        </button>
+
+        <ol class="mrt-scroll-section__container" id="mrt-container">
+          <li><button class="mrt_button">劍潭</button></li>
+          <li><button class="mrt_button">士林</button></li>
+          <li><button class="mrt_button">台北車站</button></li>
+          <li><button class="mrt_button">中正紀念堂</button></li>
+          <li><button class="mrt_button">忠孝復興</button></li>
+          <li><button class="mrt_button">大安森林公園</button></li>
+        </ol>
+
+        <button
+          class="mrt-scroll__arrow mrt-scroll__arrow--right"
+          id="mrt-scroll-right"
+        >
+          <img src="/static/images/right_arrow.png" alt="Right Arrow" />
+        </button>
+      </section>
+      <section class="attractions-container" id="attractions-container">
+        <div class="attractions-grid" id="attractions-grid">
+          <!-- Attraction cards will be dynamically inserted here -->
+        </div>
+        <div id="infinite-scroll-sentinel" style="height: 10px"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__text">COPYRIGHT © 2021 台北一日遊</div>
+    </footer>
+  </body>
 </html>

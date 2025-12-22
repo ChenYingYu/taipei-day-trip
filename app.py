@@ -10,6 +10,8 @@ import os
 
 from typing import Annotated, Any
 
+from fastapi.staticfiles import StaticFiles
+
 db_pool = None
 
 
@@ -46,6 +48,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def get_connection():
