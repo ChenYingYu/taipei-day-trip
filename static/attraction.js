@@ -13,14 +13,14 @@ async function getAttractionData() {
     }
 
     document.getElementById("attraction-name").textContent = data.name;
-    document.getElementById("attraction-category-mrt").textContent = 
-      `${data.category} at ${data.mrt || ""}`;
+    document.getElementById("attraction-category-mrt").textContent = `${
+      data.category
+    } at ${data.mrt || ""}`;
     document.getElementById("description").textContent = data.description;
     document.getElementById("address").textContent = data.address;
     document.getElementById("transport").textContent = data.transport;
 
     renderSlideshow(data.images);
-
   } catch (error) {
     console.error("Error fetching attraction details:", error);
   }
@@ -31,7 +31,7 @@ getAttractionData();
 const timeRadios = document.querySelectorAll('input[name="time"]');
 const priceDisplay = document.getElementById("booking-price");
 
-timeRadios.forEach(radio => {
+timeRadios.forEach((radio) => {
   radio.addEventListener("change", (e) => {
     if (e.target.value === "morning") {
       priceDisplay.textContent = "新台幣 2000 元";
@@ -41,20 +41,51 @@ timeRadios.forEach(radio => {
   });
 });
 
+let currentIndex = 0;
+let totalImages = [];
+
 function renderSlideshow(images) {
+  totalImages = images;
   const container = document.getElementById("slideshow-container");
   const indicatorsContainer = document.getElementById("indicators");
+
+  container.innerHTML = "";
+  indicatorsContainer.innerHTML = "";
 
   images.forEach((url, index) => {
     const img = document.createElement("img");
     img.src = url;
-    img.className = "slideshow__img";
-    if (index === 0) img.classList.add("active"); 
+    img.className = index === 0 ? "slideshow__img active" : "slideshow__img";
     container.appendChild(img);
 
-    const dot = document.createElement("div");
-    dot.className = "indicator-dot";
-    if (index === 0) dot.classList.add("active");
-    indicatorsContainer.appendChild(dot);
+    const bar = document.createElement("div");
+    bar.className = index === 0 ? "indicator-bar active" : "indicator-bar";
+    indicatorsContainer.appendChild(bar);
   });
 }
+
+function updateSlideshow(newIndex) {
+  const images = document.querySelectorAll(".slideshow__img");
+  const bars = document.querySelectorAll(".indicator-bar");
+
+  images[currentIndex].classList.remove("active");
+  bars[currentIndex].classList.remove("active");
+
+  if (newIndex >= totalImages.length) {
+    currentIndex = 0;
+  } else if (newIndex < 0) {
+    currentIndex = totalImages.length - 1;
+  } else {
+    currentIndex = newIndex;
+  }
+
+  images[currentIndex].classList.add("active");
+  bars[currentIndex].classList.add("active");
+}
+
+document
+  .getElementById("next-btn")
+  .addEventListener("click", () => updateSlideshow(currentIndex + 1));
+document
+  .getElementById("prev-btn")
+  .addEventListener("click", () => updateSlideshow(currentIndex - 1));
