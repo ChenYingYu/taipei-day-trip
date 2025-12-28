@@ -35,6 +35,12 @@ html {
   font-weight: var(--font-weight-normal);
 }
 
+hr {
+  background-color: #ffffff;
+  height: 0;
+  border: 1px solid var(--color-secondary-20);
+}
+
 h1 {
   font-size: 1.75rem;
   font-weight: var(--font-weight-bold);
@@ -83,6 +89,7 @@ header {
   display: flex;
   align-items: center;
   background-color: var(--color-white);
+  z-index: 1000;
 }
 
 .container {
@@ -412,15 +419,16 @@ footer {
   }
 }
 
-.booking-card {
+.booking-form {
   background-color: var(--color-secondary-10);
   padding: 20px;
   border-radius: 5px;
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.booking-form {
-  margin-top: 20px;
+.booking-form p {
+  margin: 0 0 10px 0;
 }
 
 .form-group {
@@ -430,7 +438,6 @@ footer {
 }
 
 .form-group label {
-  font-weight: var(--font-weight-bold);
   margin-right: 10px;
 }
 
@@ -439,6 +446,7 @@ footer {
   color: var(--color-white);
   border: none;
   padding: 10px 20px;
+  width: 154px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 19px;
@@ -447,23 +455,82 @@ footer {
 .attraction-main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 15px;
+  padding: 0px 15px 40px 15px;
   box-sizing: border-box;
+}
+
+.attraction-main hr {
+  margin: 0 -15px;
 }
 
 .attraction-top {
   display: flex;
-  gap: 40px;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
   max-width: 1200px;
   margin: 40px auto;
-  padding: 0 15px;
+  padding: 0 15px 0px 15px;
+  margin-bottom: 40px;
 }
 
 .slideshow {
-  position: relative;
-  width: 100%;
+  width: 540px;
   height: 400px;
+  border-radius: 5px;
+  position: relative;
   overflow: hidden;
+}
+
+.attraction-profile {
+  flex-grow: 1;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-secondary-70);
+}
+
+#attraction-name {
+  margin: 0;
+}
+
+#attraction-category-mrt {
+  margin: 15px 0 0 0;
+}
+
+.attraction-simple-intro {
+  margin-bottom: 20px;
+}
+
+.booking-form {
+  margin-top: 0;
+  height: 300px;
+  background-color: var(--color-secondary-10);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.time-selection {
+  display: flex;
+  gap: 4px;
+}
+
+.booking-form input[type="radio"] {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--color-white);
+  background-color: var(--color-white);
+  border-radius: 50%;
+  white-space: nowrap;
+}
+
+.booking-form input[type="radio"]:checked {
+  background-color: var(--color-primary-70);
 }
 
 .slideshow__container {
@@ -538,19 +605,51 @@ footer {
   opacity: 1;
 }
 
-@media (max-width: 1200px) {
+.attraction-info {
+  margin-top: 40px;
+  line-height: 2;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-secondary-70);
+}
+
+.info-block {
+  margin-top: 20px;
+}
+
+.info-block * {
+  margin: 0;
+}
+
+@media (max-width: 840px) {
   .attraction-top {
     flex-direction: column;
-    margin: 0;
+    margin: 0 -15px;
+    margin-bottom: 40px;
     padding: 0;
+    gap: 0;
   }
 
   .slideshow {
     width: 100%;
     border-radius: 0;
+    height: 350px;
   }
 
-  .booking-card {
+  .attraction-profile {
+    width: 100%;
+    padding: 10px 0px;
+  }
+
+  .attraction-simple-intro {
+    margin: 20px 10px 0 10px;
+  }
+
+  .booking-form {
+    width: auto;
     margin: 20px 10px;
+  }
+
+  .attraction-info {
+    padding: 0 5px;
   }
 }

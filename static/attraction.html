@@ -35,26 +35,48 @@
           <div class="slideshow__indicators" id="indicators"></div>
         </div>
 
-        <div class="booking-card">
-          <h3 id="attraction-name"></h3>
-          <p id="attraction-category-mrt"></p>
+        <div class="attraction-profile">
+          <div class="attraction-simple-intro">
+            <h3 id="attraction-name" class="font-bold"></h3>
+            <p id="attraction-category-mrt" class="font-regular"></p>
+          </div>
 
-          <form class="booking-form">
-            <p class="body-bold">訂購導覽行程</p>
-            <p>以此景點為中心的一日行程，帶您探索城市角落故事</p>
+          <form class="booking-form" id="attraction-bookSection">
+            <p class="font-bold">訂購導覽行程</p>
+            <p class="font-regular">
+              以此景點為中心的一日行程，帶您探索城市角落故事
+            </p>
 
             <div class="form-group">
-              <label>選擇日期：</label>
+              <label class="font-medium">選擇日期：</label>
               <input type="date" id="booking-date" />
             </div>
 
             <div class="form-group">
-              <label>選擇時間：</label>
-              <input type="radio" name="time" value="morning" checked /> 上半天
-              <input type="radio" name="time" value="afternoon" /> 下半天
+              <label class="font-medium">選擇時間：</label>
+              <div class="time-selection">
+                <input
+                  type="radio"
+                  name="time"
+                  value="morning"
+                  id="morning"
+                  checked
+                />
+                <label for="morning" class="font-regular">上半天</label>
+                <input
+                  type="radio"
+                  name="time"
+                  value="afternoon"
+                  id="afternoon"
+                />
+                <label for="afternoon" class="font-regular">下半天</label>
+              </div>
             </div>
 
-            <p>費用：<span id="booking-price">新台幣 2000 元</span></p>
+            <div class="price-display">
+              <p class="body-bold">導覽費用：</p>
+              <p id="booking-price" class="font-regular">新台幣 2000 元</p>
+            </div>
             <button type="submit" class="btn-primary">開始預約行程</button>
           </form>
         </div>
@@ -65,11 +87,11 @@
       <section class="attraction-info">
         <p id="description"></p>
         <div class="info-block">
-          <p class="body-bold">景點地址：</p>
+          <p class="font-bold">景點地址：</p>
           <p id="address"></p>
         </div>
         <div class="info-block">
-          <p class="body-bold">交通方式：</p>
+          <p class="font-bold">交通方式：</p>
           <p id="transport"></p>
         </div>
       </section>
