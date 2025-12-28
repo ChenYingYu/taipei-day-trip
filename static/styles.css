@@ -441,6 +441,22 @@ footer {
   margin-right: 10px;
 }
 
+.form-group input[type="date"] {
+  width: 193px;
+  height: 35px;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  border: none;
+  outline: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.price-display {
+  display: flex;
+  margin-bottom: 10px;
+}
+
 .btn-primary {
   background-color: var(--color-primary-70);
   color: var(--color-white);
