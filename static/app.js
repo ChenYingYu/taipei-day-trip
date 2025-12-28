@@ -38,12 +38,14 @@ function renderAttractions(attractions) {
   }
 
   attractions.forEach((attraction) => {
-    const card = document.createElement("div");
-    card.className = "attraction-card";
+    const cardLink = document.createElement("a");
+    cardLink.className = "attraction-card";
+    cardLink.href = `/attraction/${attraction.id}`; // 
+    cardLink.style.textDecoration = "none";
 
     const imageUrl = attraction.images[0];
 
-    card.innerHTML = `
+    cardLink.innerHTML = `
             <div class="attraction-card__thumbnail" style="background-image: url('${imageUrl}')">
                 <div class="attraction-card__name"></div>
             </div>
@@ -53,13 +55,13 @@ function renderAttractions(attractions) {
             </div>
         `;
 
-    card.querySelector(".attraction-card__name").textContent = attraction.name;
-    card.querySelector(".attraction-card__mrt").textContent =
+    cardLink.querySelector(".attraction-card__name").textContent = attraction.name;
+    cardLink.querySelector(".attraction-card__mrt").textContent =
       attraction.mrt || "";
-    card.querySelector(".attraction-card__category").textContent =
+    cardLink.querySelector(".attraction-card__category").textContent =
       attraction.category;
 
-    grid.appendChild(card);
+    grid.appendChild(cardLink);
   });
 }
 
