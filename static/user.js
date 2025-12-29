@@ -43,6 +43,54 @@ function showSignIn() {
 
 toSignUpLink.addEventListener("click", showSignUp);
 toSignInLink.addEventListener("click", showSignIn);
+
+const signupBtn = document.getElementById("signup-btn");
+
+signupBtn.addEventListener("click", async () => {
+  const name = document.getElementById("signup-name").value.trim();
+  const email = document.getElementById("signup-email").value.trim();
+  const password = document.getElementById("signup-password").value.trim();
+  const errorMsg = document.getElementById("signup-error");
+  const successMsg = document.getElementById("signup-success");
+
+  // Clear previous messages
+  errorMsg.textContent = "";
+  successMsg.textContent = "";
+
+  if (!name || !email || !password) {
+    errorMsg.textContent = "請輸入完整姓名、信箱與密碼";
+    setTimeout(() => {
+      errorMsg.textContent = "";
+    }, 2000);
+    return; // Stop the function here
+  }
+
+  try {
+    const response = await fetch("/api/user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.ok) {
+      successMsg.textContent = "註冊成功，請登入系統";
+      setTimeout(() => {
+        successMsg.textContent = "";
+        showSignIn(); // Switch to sign-in view
+      }, 2000);
+    } else {
+      errorMsg.textContent = result.message || "註冊失敗";
+      setTimeout(() => {
+        errorMsg.textContent = "";
+      }, 2000);
+    }
+  } catch (error) {
+    errorMsg.textContent = "伺服器錯誤，請稍後再試";
+  }
+});
+
 const signinBtn = document.getElementById("signin-btn");
 
 signinBtn.addEventListener("click", async () => {
