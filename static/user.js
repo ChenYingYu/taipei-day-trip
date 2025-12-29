@@ -6,8 +6,15 @@ const signUpView = document.getElementById("signup-view");
 // 1. Show Popup when clicking "登入/註冊"
 const authBtn = document.getElementById("auth-btn");
 authBtn.addEventListener("click", () => {
-  authModal.style.display = "block";
-  showSignIn(); // Default to sign-in view
+  // Check if the button currently says "登出系統"
+  if (authBtn.textContent === "登出系統") {
+    handleLogout();
+  } else {
+    // Only show the modal if the user is NOT logged in
+    authModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+    showSignIn();
+  }
 });
 
 // 2. Hide Popup when clicking the Close Button
@@ -162,5 +169,11 @@ async function checkLoginStatus() {
     console.error("Auth check failed:", error);
   }
 }
+
+function handleLogout() {
+  localStorage.removeItem("token");
+  location.reload();
+}
+
 // Run this immediately when the script loads
 document.addEventListener("DOMContentLoaded", checkLoginStatus);
