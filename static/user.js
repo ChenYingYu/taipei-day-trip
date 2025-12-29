@@ -43,3 +43,49 @@ function showSignIn() {
 
 toSignUpLink.addEventListener("click", showSignUp);
 toSignInLink.addEventListener("click", showSignIn);
+const signinBtn = document.getElementById("signin-btn");
+
+signinBtn.addEventListener("click", async () => {
+  const email = document.getElementById("signin-email").value.trim();
+  const password = document.getElementById("signin-password").value.trim();
+  const errorMsg = document.getElementById("signin-error");
+
+  errorMsg.textContent = "";
+
+  if (!email || !password) {
+    errorMsg.textContent = "請輸入信箱與密碼";
+    setTimeout(() => {
+      errorMsg.textContent = "";
+    }, 2000);
+    return; // Stop the function here
+  }
+
+  try {
+    const response = await fetch("/api/user/auth", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.token) {
+      // 1. Save token to localStorage
+      localStorage.setItem("token", result.token);
+
+      // 2. Close modal
+      authModal.style.display = "none";
+      document.body.style.overflow = "auto";
+
+      // 3. Refresh page to update the UI (or call a function to update the header)
+      location.reload();
+    } else {
+      errorMsg.textContent = result.message || "電子郵件或密碼錯誤";
+      setTimeout(() => {
+        errorMsg.textContent = "";
+      }, 2000);
+    }
+  } catch (error) {
+    errorMsg.textContent = "伺服器錯誤，請稍後再試";
+  }
+});
