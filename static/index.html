@@ -93,26 +93,26 @@
         <div class="modal-decorator"></div>
         <button id="close-modal" class="close-btn"></button>
 
-        <div id="signin-view">
+        <div id="signin-view" class="modal-view">
           <h3>登入會員帳戶</h3>
           <input type="email" id="signin-email" placeholder="輸入電子郵件" />
           <input type="password" id="signin-password" placeholder="輸入密碼" />
           <button id="signin-btn" class="auth-submit">登入帳戶</button>
           <p id="signin-error" class="error-msg"></p>
-          <p>
+          <p class="switch-text">
             還沒有帳戶？<span id="to-signup" class="switch-link">點此註冊</span>
           </p>
         </div>
 
-        <div id="signup-view" style="display: none">
-          <h3>註冊會員帳號</h3>
+        <div id="signup-view" class="modal-view" style="display: none">
+          <h3>註冊會員帳戶</h3>
           <input type="text" id="signup-name" placeholder="輸入姓名" />
           <input type="email" id="signup-email" placeholder="輸入電子郵件" />
           <input type="password" id="signup-password" placeholder="輸入密碼" />
           <button id="signup-btn" class="auth-submit">註冊新帳戶</button>
           <p id="signup-error" class="error-msg"></p>
           <p id="signup-success" class="success-msg"></p>
-          <p>
+          <p class="switch-text">
             已經有帳戶了？<span id="to-signin" class="switch-link"
               >點此登入</span
             >
