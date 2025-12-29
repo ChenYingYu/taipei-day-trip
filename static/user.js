@@ -137,3 +137,30 @@ signinBtn.addEventListener("click", async () => {
     errorMsg.textContent = "伺服器錯誤，請稍後再試";
   }
 });
+
+async function checkLoginStatus() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const response = await fetch("/api/user/auth", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const result = await response.json();
+
+    if (result.data) {
+      // User is logged in!
+      authBtn.textContent = "登出系統";
+
+      // Add a new click listener for logging out
+      authBtn.onclick = handleLogout;
+    }
+  } catch (error) {
+    console.error("Auth check failed:", error);
+  }
+}
+// Run this immediately when the script loads
+document.addEventListener("DOMContentLoaded", checkLoginStatus);
