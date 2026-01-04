@@ -1,6 +1,9 @@
 from fastapi import *
 from fastapi.responses import FileResponse
-
+from passlib.context import CryptContext
+import jwt
+from datetime import datetime, timedelta
+from fastapi.responses import JSONResponse
 import mysql.connector
 from contextlib import asynccontextmanager
 from mysql.connector import pooling  # For database connection pooling
@@ -13,11 +16,11 @@ from typing import Annotated, Any
 from fastapi.staticfiles import StaticFiles
 
 db_pool = None
+load_dotenv()
 
 
 def create_db_pool():
     """Creates a connection pool to the MySQL database."""
-    load_dotenv()
     config = {
         "host": os.getenv("DB_HOST", "localhost"),
         "user": os.getenv("DB_USER"),
@@ -56,6 +59,128 @@ def get_connection():
     if db_pool is None:
         raise Exception("Database connection pool is not initialized.")
     return db_pool.get_connection()
+
+
+# --- Authentication Config ---
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+ALGORITHM = "HS256"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def create_jwt(user_id: int, name: str, email: str):
+    payload = {
+        "id": user_id,
+        "name": name,
+        "email": email,
+        "exp": datetime.utcnow() + timedelta(days=7),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+@app.post("/api/user")
+async def signup(request: Request):
+    try:
+        data = await request.json()
+        name, email, password = (
+            data.get("name"),
+            data.get("email"),
+            data.get("password"),
+        )
+
+        if not name or not email or not password:
+            return JSONResponse(
+                status_code=400,
+                content={"error": True, "message": "註冊失敗，欄位不得為空"},
+            )
+
+        connection = get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        # Check if email exists
+        cursor.execute("SELECT id FROM user WHERE email = %s", (email,))
+        if cursor.fetchone():
+            return JSONResponse(
+                status_code=400,
+                content={"error": True, "message": "Email 已經註冊帳戶"},
+            )
+
+        # Hash and Insert
+        hashed_password = pwd_context.hash(password)
+        cursor.execute(
+            "INSERT INTO user (name, email, password) VALUES (%s, %s, %s)",
+            (name, email, hashed_password),
+        )
+        connection.commit()
+        return {"ok": True}
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500, content={"error": True, "message": f"伺服器錯誤: {str(e)}"}
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+@app.put("/api/user/auth")
+async def signin(request: Request):
+    try:
+        data = await request.json()
+        email, password = data.get("email"), data.get("password")
+
+        connection = get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM user WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if not user or not pwd_context.verify(password, user["password"]):
+            return JSONResponse(
+                status_code=400,
+                content={"error": True, "message": "電子郵件或密碼錯誤"},
+            )
+        token = create_jwt(user["id"], user["name"], user["email"])
+        return {"token": token}
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500, content={"error": True, "message": "伺服器錯誤"}
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+@app.get("/api/user/auth")
+async def get_user_status(request: Request):
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return {"data": None}
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return {
+            "data": {
+                "id": payload.get("id"),
+                "name": payload.get("name"),
+                "email": payload.get("email"),
+            }
+        }
+    except jwt.ExpiredSignatureError:
+        return {"data": None}
+    except jwt.InvalidTokenError:
+        return {"data": None}
+    except Exception as e:
+        print(f"Auth check error: {e}")
+        return {"data": None}
 
 
 @app.get("/api/attractions")
