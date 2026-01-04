@@ -77,6 +77,24 @@ def create_jwt(user_id: int, name: str, email: str):
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
+# Helper function to verify JWT and return user data
+async def get_current_user(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+
+    token = auth_header.split(" ")[1]
+    try:
+        # Decode the token using the secret key from .env
+        payload = jwt.decode(token, os.getenv("JWT_SECRET_KEY"), algorithms=["HS256"])
+        # Payload usually contains {"id": 1, "name": "...", "email": "..."}
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None  # Token expired
+    except jwt.InvalidTokenError:
+        return None  # Token tampered with
+
+
 @app.post("/api/user")
 async def signup(request: Request):
     try:
@@ -358,6 +376,157 @@ async def get_attraction_by_id(id: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": True, "message": "伺服器發生意外錯誤。"},
         )
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+# POST /api/booking - Create or Replace a booking
+@app.post("/api/booking")
+async def create_booking(request: Request):
+    connection = None
+    cursor = None
+
+    user = await get_current_user(request)
+    if not user:
+        return JSONResponse(
+            status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+
+    try:
+        data = await request.json()
+
+        required_fields = ["attractionId", "date", "time", "price"]
+
+        # Check for missing fields
+        if not all(data.get(field) for field in required_fields):
+            return JSONResponse(
+                status_code=400,
+                content={"error": True, "message": "建立失敗，輸入資料不完整"},
+            )
+
+        # Logic check for Price vs Time
+        price_rules = {"morning": 2000, "afternoon": 2500}
+        if data["price"] != price_rules.get(data["time"]):
+            return JSONResponse(
+                status_code=400, content={"error": True, "message": "費用與時段不符"}
+            )
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # UPSERT logic: Insert or Update if user_id already exists
+        query = """
+            INSERT INTO booking (user_id, attraction_id, date, time, price)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+            attraction_id = VALUES(attraction_id),
+            date = VALUES(date),
+            time = VALUES(time),
+            price = VALUES(price)
+        """
+        cursor.execute(
+            query,
+            (
+                user["id"],
+                data["attractionId"],
+                data["date"],
+                data["time"],
+                data["price"],
+            ),
+        )
+        connection.commit()
+        return {"ok": True}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": True, "message": str(e)})
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+# GET /api/booking - Get current user's booking
+@app.get("/api/booking")
+async def get_booking(request: Request):
+    connection = None
+    cursor = None
+
+    user = await get_current_user(request)
+    if not user:
+        return JSONResponse(
+            status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+
+    connection = None
+    cursor = None
+    try:
+        # Get connection from the global pool
+        connection = get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        query = """
+            SELECT 
+                b.attraction_id as id, a.name, a.address, (SELECT url FROM image WHERE attraction_id = a.id ORDER BY id ASC LIMIT 1) as image,
+                b.date, b.time, b.price
+            FROM booking b
+            JOIN attraction a ON b.attraction_id = a.id
+            JOIN image i ON i.attraction_id = a.id
+            WHERE b.user_id = %s
+            GROUP BY b.id, a.name, a.address, b.date, b.time, b.price
+        """
+        cursor.execute(query, (user["id"],))
+        result = cursor.fetchone()
+
+        if not result:
+            return {"data": None}
+
+        return {
+            "data": {
+                "attraction": {
+                    "id": result["id"],
+                    "name": result["name"],
+                    "address": result["address"],
+                    "image": result["image"],
+                },
+                "date": result["date"].strftime("%Y-%m-%d"),
+                "time": result["time"],
+                "price": result["price"],
+            }
+        }
+    except Exception as e:
+        print(f"Error: {e}")
+        return JSONResponse(
+            status_code=500, content={"error": True, "message": "伺服器內部錯誤"}
+        )
+    finally:
+        # Crucial: always return the connection to the pool
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+# DELETE /api/booking - Delete the booking
+@app.delete("/api/booking")
+async def delete_booking(request: Request):
+    connection = None
+    cursor = None
+
+    user = await get_current_user(request)
+    if not user:
+        return JSONResponse(
+            status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM booking WHERE user_id = %s", (user["id"],))
+        connection.commit()
+        return {"ok": True}
     finally:
         if cursor:
             cursor.close()
