@@ -89,3 +89,59 @@ document
 document
   .getElementById("prev-btn")
   .addEventListener("click", () => updateSlideshow(currentIndex - 1));
+
+const startBookingBtn = document.getElementById("start-booking-btn");
+
+startBookingBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    authModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+    showSignIn();
+    return;
+  }
+
+  // 1. Gather data
+  const path = window.location.pathname;
+  const attractionId = path.split("/").pop();
+  const date = document.getElementById("booking-date").value;
+
+  // Logic to determine time and price
+  const isMorning = document.getElementById("morning").checked;
+  const time = isMorning ? "morning" : "afternoon";
+  const price = isMorning ? 2000 : 2500;
+
+  if (!date) {
+    alert("請選擇日期");
+    return;
+  }
+
+  // 2. Send POST Request
+  try {
+    const response = await fetch("/api/booking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        attractionId: parseInt(attractionId),
+        date: date,
+        time: time,
+        price: price,
+      }),
+    });
+
+    const result = await response.json();
+    if (result.ok) {
+      window.location.href = "/booking";
+    } else {
+      alert(result.message || "預約失敗");
+    }
+  } catch (error) {
+    console.error("Booking error:", error);
+  }
+});
