@@ -4,8 +4,131 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/booking.js" defer></script>
+  <script src="/static/user.js" defer></script>
 </head>
 <body>
-  
+  <header>
+      <nav class="container">
+        <a href="/" style="text-decoration: none">
+          <h1 style="color: #448899">台北一日遊</h1>
+        </a>
+        <div class="nav--links">
+          <button class="nav--booking font-medium" id="nav-booking-btn">預定行程</button>
+          <button class="nav--auth font-medium" id="auth-btn">登入/註冊</button>
+        </div>
+      </nav>
+    </header>
+
+    <hr />
+  </main>
+  <div class="container">
+    <div class="booking-headline">
+      您好，<span id="user-name-display"></span>，待預訂的行程如下：
+    </div>
+
+    <section id="booking-info-section" class="booking-section">
+      <div class="booking-card">
+        <div class="booking-image-container">
+          <img id="attraction-image" src="" alt="Attraction">
+        </div>
+        <div class="booking-details">
+          <h4 id="attraction-name-display" class="booking-title">台北一日遊：<span></span></h4>
+          <p><strong>日期：</strong><span id="booking-date-display"></span></p>
+          <p><strong>時間：</strong><span id="booking-time-display"></span></p>
+          <p><strong>費用：</strong>新台幣 <span id="booking-price-display"></span> 元</p>
+          <p><strong>地點：</strong><span id="attraction-address-display"></span></p>
+        </div>
+        <button id="delete-booking-btn" class="delete-icon">
+            <img src="/static/images/delete.png" alt="Delete">
+        </button>
+      </div>
+    </section>
+
+    <div id="no-booking-msg" style="display: none;">
+      目前沒有任何待預訂的行程
+    </div>
+
+    <hr class="booking-divider">
+
+    <section class="booking-section">
+      <h3 class="section-title">您的聯絡資訊</h3>
+      <div class="form-field">
+        <label>聯絡姓名：</label>
+        <input type="text" id="contact-name">
+      </div>
+      <div class="form-field">
+        <label>聯絡信箱：</label>
+        <input type="email" id="contact-email">
+      </div>
+      <div class="form-field">
+        <label>手機號碼：</label>
+        <input type="text" id="contact-phone">
+      </div>
+      <p class="contact-notice">請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。</p>
+    </section>
+
+    <hr class="booking-divider">
+
+    <section class="booking-section">
+      <h3 class="section-title">信用卡付款資訊</h3>
+      <div class="form-field">
+        <label>卡片號碼：</label>
+        <input type="text" placeholder="**** **** **** ****">
+      </div>
+      <div class="form-field">
+        <label>過期時間：</label>
+        <input type="text" placeholder="MM / YY">
+      </div>
+      <div class="form-field">
+        <label>驗證密碼：</label>
+        <input type="text" placeholder="CVV">
+      </div>
+    </section>
+
+    <hr class="booking-divider">
+
+    <div class="booking-confirm">
+      <div class="total-price">總價：新台幣 <span id="final-price"></span> 元</div>
+      <button class="btn-primary" id="confirm-pay-btn">確認訂購並付款</button>
+    </div>
+  </div>
+  <footer class="footer">
+      <div class="footer__text">COPYRIGHT © 2021 台北一日遊</div>
+    </footer>
+    <div id="auth-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-decorator"></div>
+        <button id="close-modal" class="close-btn"></button>
+
+        <div id="signin-view" class="modal-view">
+          <h3>登入會員帳戶</h3>
+          <input type="email" id="signin-email" placeholder="輸入電子郵件" />
+          <input type="password" id="signin-password" placeholder="輸入密碼" />
+          <button id="signin-btn" class="auth-submit">登入帳戶</button>
+          <p id="signin-error" class="error-msg"></p>
+          <p class="switch-text">
+            還沒有帳戶？<span id="to-signup" class="switch-link">點此註冊</span>
+          </p>
+        </div>
+
+        <div id="signup-view" class="modal-view" style="display: none">
+          <h3>註冊會員帳戶</h3>
+          <input type="text" id="signup-name" placeholder="輸入姓名" />
+          <input type="email" id="signup-email" placeholder="輸入電子郵件" />
+          <input type="password" id="signup-password" placeholder="輸入密碼" />
+          <button id="signup-btn" class="auth-submit">註冊新帳戶</button>
+          <p id="signup-error" class="error-msg"></p>
+          <p id="signup-success" class="success-msg"></p>
+          <p class="switch-text">
+            已經有帳戶了？<span id="to-signin" class="switch-link"
+              >點此登入</span
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+</main>
 </body>
 </html>
