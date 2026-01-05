@@ -175,5 +175,21 @@ function handleLogout() {
   location.reload();
 }
 
+const navBookingBtn = document.getElementById("nav-booking-btn");
+
+navBookingBtn.addEventListener("click", (e) => {
+  e.preventDefault(); // Prevent default link behavior
+  const token = localStorage.getItem("token");
+  if (token) {
+    // User is logged in, send to booking page
+    window.location.href = "/booking";
+  } else {
+    // User not logged in, trigger existing login modal
+    authModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+    showSignIn();
+  }
+});
+
 // Run this immediately when the script loads
 document.addEventListener("DOMContentLoaded", checkLoginStatus);
