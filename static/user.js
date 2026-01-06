@@ -164,6 +164,12 @@ async function checkLoginStatus() {
 
       // Add a new click listener for logging out
       authBtn.onclick = handleLogout;
+    } else {
+      // INVALID/GHOST TOKEN FOUND:
+      localStorage.removeItem("token");
+
+      // Ensure the button stays as "登入/註冊"
+      authBtn.textContent = "登入/註冊";
     }
   } catch (error) {
     console.error("Auth check failed:", error);
@@ -174,6 +180,22 @@ function handleLogout() {
   localStorage.removeItem("token");
   location.reload();
 }
+
+const navBookingBtn = document.getElementById("nav-booking-btn");
+
+navBookingBtn.addEventListener("click", (e) => {
+  e.preventDefault(); // Prevent default link behavior
+  const token = localStorage.getItem("token");
+  if (token) {
+    // User is logged in, send to booking page
+    window.location.href = "/booking";
+  } else {
+    // User not logged in, trigger existing login modal
+    authModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+    showSignIn();
+  }
+});
 
 // Run this immediately when the script loads
 document.addEventListener("DOMContentLoaded", checkLoginStatus);
