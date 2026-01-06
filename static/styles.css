@@ -786,6 +786,7 @@ footer {
 
 /* Booking Page Layout */
 .booking-main {
+  display: none;
   max-width: 1020px;
   padding: 20px 40px;
   color: var(--color-secondary-70);

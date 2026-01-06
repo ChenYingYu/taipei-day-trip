@@ -24,6 +24,10 @@ async function renderBookingPage(token) {
         userData.data.name;
       document.querySelector("#contact-name").value = userData.data.name;
       document.querySelector("#contact-email").value = userData.data.email;
+      document.querySelector(".booking-main").style.display = "block";
+    } else {
+      localStorage.removeItem("token");
+      window.location.href = "/";
     }
 
     // 3. Fetch Booking Data

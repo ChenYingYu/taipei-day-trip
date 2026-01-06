@@ -164,6 +164,12 @@ async function checkLoginStatus() {
 
       // Add a new click listener for logging out
       authBtn.onclick = handleLogout;
+    } else {
+      // INVALID/GHOST TOKEN FOUND:
+      localStorage.removeItem("token");
+
+      // Ensure the button stays as "登入/註冊"
+      authBtn.textContent = "登入/註冊";
     }
   } catch (error) {
     console.error("Auth check failed:", error);

@@ -104,6 +104,22 @@ startBookingBtn.addEventListener("click", async (e) => {
     return;
   }
 
+  // Token exists but might be fake/expired
+  const authRes = await fetch("/api/user/auth", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const authData = await authRes.json();
+
+  if (!authData.data) {
+    // Backend says token is invalid! Cleanup and show modal
+    localStorage.removeItem("token");
+    authModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+    showSignIn();
+    return;
+  }
+
   // 1. Gather data
   const path = window.location.pathname;
   const attractionId = path.split("/").pop();
